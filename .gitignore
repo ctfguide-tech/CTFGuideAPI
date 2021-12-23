@@ -1,0 +1,8 @@
+# Hide node modules.
+node_modules/
+
+# Hide internal tools and keys
+migration/
+private/
+ca-certificate.crt
+workspace.code-workspace
