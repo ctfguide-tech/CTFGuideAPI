@@ -25,6 +25,9 @@ let userSchema = {
     },
     "history" : {
         type: Object
+    },
+    "streak" : {
+        type: Number
     }
 }
 

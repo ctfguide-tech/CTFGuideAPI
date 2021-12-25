@@ -5,7 +5,8 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const users = require("./src/user.js");
 const challenges = require("./src/challenge.js");
-const classes = require("./src/class.js")
+const classes = require("./src/class.js");
+const cors = require("cors");
 const secret = require("./private/secret.json")
 const http = require("http").createServer(app);
 const admin = require('firebase-admin');
@@ -15,7 +16,7 @@ initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 
-
+app.use("*", cors())
 app.use("/users", users);
 app.use("/challenges", challenges);
 app.use("/classes", classes);

@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.17.2",
     "express-router": "^0.0.1",
     "firebase-admin": "^10.0.1",
