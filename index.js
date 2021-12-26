@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const users = require("./src/user.js");
 const challenges = require("./src/challenge.js");
 const classes = require("./src/class.js");
+
 const cors = require("cors");
 const secret = require("./private/secret.json")
 const http = require("http").createServer(app);

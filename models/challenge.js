@@ -1,14 +1,18 @@
 const mongoose = require('mongoose');
 
 let challengeSchema = {
-    "challengeName": {
+    "id": {
+        type: String,
+        require: true
+    },
+    "title": {
         type: String,
         required: true
     },
     "category": {
         type: String
     },
-    "challengeAuthor": {
+    "author": {
         type: String
     },
     "difficulty" : {
@@ -22,6 +26,21 @@ let challengeSchema = {
     },
     "views" : {
         type: Number
+    },
+    "attempts" : {
+        type: Number
+    },
+    "problem" : {
+        type: String
+    },
+    "solution" : {
+        type: String
+    },
+    "goodAttempts" : {
+        type: Number
+    },
+    "ctflearn_url" : {
+        type: String
     }
 }
 

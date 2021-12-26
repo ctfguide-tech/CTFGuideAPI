@@ -28,6 +28,15 @@ let userSchema = {
     },
     "streak" : {
         type: Number
+    },
+    "solvedChallenges" : {
+        type: Object
+    },
+    "username" : {
+        type: String
+    },
+    "stibarc_username" : {
+        type: String
     }
 }
 
