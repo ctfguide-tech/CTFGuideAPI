@@ -12,4 +12,17 @@ router.get("/all", (request, response) => {
     })
 });
 
+
+router.get("/specific/:id", (request, response) => {
+    if (!request.params.id) return response.status(400).json({
+        "message" : "Please provide the challenge ID."
+    })
+    challengeModel.find({id : request.params.id}, (err, challengeData) => {
+        if (challengeData.length === 0) return response.status(404).json({
+            "message" : "You're looking for a challenge that doesn't exist."
+        })
+        return response.status(200).json(challengeData);
+    })
+});
+
 module.exports = router;
