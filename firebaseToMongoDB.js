@@ -49,7 +49,8 @@ async function importChallenges() {
                 title: dataObj.title,
                 views: dataObj.views,
                 platform: dataObj.platform,
-                ctflearn_url: dataObj.ctflearn_url
+                ctflearn_url: dataObj.ctflearn_url,
+                problem: dataObj.problem
         })
           
         newChallenge.save()
@@ -130,7 +131,6 @@ async function importSolutions() {
             })
     });
 }
-//importChallenges()
+importChallenges()
 //importUsers()
-
-importSolutions()
+//importSolutions()

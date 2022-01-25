@@ -21,7 +21,7 @@ router.get("/specific/:id", (request, response) => {
         if (challengeData.length === 0) return response.status(404).json({
             "message" : "You're looking for a challenge that doesn't exist."
         })
-        return response.status(200).json(challengeData);
+        return response.status(200).json(challengeData[0]);
     })
 });
 
