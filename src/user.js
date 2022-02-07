@@ -38,6 +38,10 @@ router.get("/register", (request, response) => {
                       "message" : "Unable to create save data. Please contact support if you keep running into this issue."
                   })
               })
+
+
+              // Create a user on our terminal.
+              
         })
         .catch((error) => {
             switch (error.errorInfo.code) {
@@ -50,6 +54,8 @@ router.get("/register", (request, response) => {
             }
  
         });
+
+        
 
     
 })
