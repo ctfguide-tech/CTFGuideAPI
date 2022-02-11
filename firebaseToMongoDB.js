@@ -88,7 +88,7 @@ async function importUsers() {
                     history: [],
                     classes: [],
                     createdChallenges: dataObj.challenges,
-                    username: dataObj.userame,
+                    username: dataObj.username,
                     solvedChallenges: dataObj.solved,
                     stibarc_username: dataObj.stibarc_username
             })
@@ -131,6 +131,7 @@ async function importSolutions() {
             })
     });
 }
+
 importChallenges()
-//importUsers()
-//importSolutions()
+importUsers()
+importSolutions()
