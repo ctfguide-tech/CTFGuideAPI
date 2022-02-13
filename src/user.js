@@ -126,7 +126,7 @@ router.get("/createvm", (request, response) => {
             const uid = request.query.uid
             let password = Math.random().toString(36).slice(-8);
             UserModel.findOne({ uid: uid }, (err, userData) => {
-                const username = userData.username
+                let username = userData.username
                 username = username.toLowerCase();
 
                 // Check if we already have an account for this user.
