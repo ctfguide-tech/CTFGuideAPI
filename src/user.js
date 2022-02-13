@@ -146,7 +146,7 @@ router.get("/createvm", (request, response) => {
                         
                         // Ask the terminal server to create an account for the user.
                         axios
-                            .get('https://terminal-gateway.ctfguide.com/createvm?uid=' + uid + '&password=' + password + "&username=" + userData.username)
+                            .get('https://terminal-gateway.ctfguide.com/createvm?uid=' + uid + '&password=' + password + "&username=" + (userData.username).toLowercase())
                             .then(res => {
                                 if (res.status == 200) {
                                     return response.status(200).json({
