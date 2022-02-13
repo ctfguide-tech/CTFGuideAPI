@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 let UserModel = require('../models/user.js')
 const { getAuth } = require('firebase-admin/auth');
-
+const axios = require("axios")
 // Register a new account
 router.get("/register", (request, response) => {
     
