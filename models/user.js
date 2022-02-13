@@ -40,6 +40,9 @@ let userSchema = {
     },
     "vmPassword" : {
         type: String
+    },
+    "vmUsername" : {
+        type: String
     }
 }
 
