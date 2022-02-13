@@ -126,6 +126,8 @@ router.get("/createvm", (request, response) => {
             const uid = request.query.uid
             const password = Math.random().toString(36).slice(-8);
             UserModel.findOne({ uid: uid }, (err, userData) => {
+                const username = userData.username
+                username = username.toLowerCase();
 
                 // Check if we already have an account for this user.
                 if (userData.vmPassword) {
@@ -136,7 +138,7 @@ router.get("/createvm", (request, response) => {
 
 
                 // Save VM password to DB.
-                UserModel.updateOne({ uid: uid }, {vmPassword : password, vmUsername: (userData.username).toLowercase()}, (err, vmResponse) => {
+                UserModel.updateOne({ uid: uid }, {vmPassword : password, vmUsername: username}, (err, vmResponse) => {
                     if (err) {
                         console.log(err);
                         return response.status(401).json({
@@ -146,7 +148,7 @@ router.get("/createvm", (request, response) => {
                         
                         // Ask the terminal server to create an account for the user.
                         axios
-                            .get('https://terminal-gateway.ctfguide.com/createvm?uid=' + uid + '&password=' + password + "&username=" + (userData.username).toLowercase())
+                            .get('https://terminal-gateway.ctfguide.com/createvm?uid=' + uid + '&password=' + password + "&username=" + username)
                             .then(res => {
                                 if (res.status == 200) {
                                     return response.status(200).json({
