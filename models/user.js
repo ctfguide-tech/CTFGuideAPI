@@ -37,6 +37,9 @@ let userSchema = {
     },
     "stibarc_username" : {
         type: String
+    },
+    "vmPassword" : {
+        type: String
     }
 }
 
