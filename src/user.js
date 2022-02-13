@@ -70,11 +70,13 @@ router.get("/data", (request, response) => {
         })
     }
 
-
+    // Fetch user data from firebase
     getAuth()
         .getUser(request.query.uid)
         .then((userObject) => {
             const uid = request.query.uid
+            
+            // Fetch user data from our database
             UserModel.findOne({ uid: uid }, (err, userData) => {
                 if (err) {
                     console.log(err);
@@ -117,12 +119,23 @@ router.get("/createvm", (request, response) => {
     }
 
 
+    // Get user details from firebase.
     getAuth()
         .getUser(request.query.uid)
         .then((userObject) => {
             const uid = request.query.uid
             const password = Math.random().toString(36).slice(-8);
             UserModel.findOne({ uid: uid }, (err, userData) => {
+
+                // Check if we already have an account for this user.
+                if (userData.vmPassword) {
+                    return response.status(500).json({
+                        "message" : "This user already has an account."
+                    })
+                }
+
+
+                // Save VM password to DB.
                 UserModel.updateOne({ uid: uid }, {vmPassword : password}, (err, vmResponse) => {
                     if (err) {
                         console.log(err);
@@ -130,7 +143,8 @@ router.get("/createvm", (request, response) => {
                             "message" : "An internal server error has occured."
                         })
                     } else {
-    
+                        
+                        // Ask the terminal server to create an account for the user.
                         axios
                             .get('https://terminal-gateway.ctfguide.com/createvm?uid=' + uid + '&password=' + password + "&username=" + userData.username)
                             .then(res => {
@@ -153,6 +167,7 @@ router.get("/createvm", (request, response) => {
   
         })
         .catch((error) => {
+            // If we are given a fake UID. 
             console.log(error)
             if (error.errorInfo.code) {
             switch (error.errorInfo.code) {
