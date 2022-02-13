@@ -124,7 +124,7 @@ router.get("/createvm", (request, response) => {
         .getUser(request.query.uid)
         .then((userObject) => {
             const uid = request.query.uid
-            const password = Math.random().toString(36).slice(-8);
+            let password = Math.random().toString(36).slice(-8);
             UserModel.findOne({ uid: uid }, (err, userData) => {
                 const username = userData.username
                 username = username.toLowerCase();
