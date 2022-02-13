@@ -152,7 +152,7 @@ router.get("/createvm", (request, response) => {
   
         })
         .catch((error) => {
-            console.log(err)
+            console.log(error)
             if (error.errorInfo.code) {
             switch (error.errorInfo.code) {
                 case 'auth/user-not-found' :
