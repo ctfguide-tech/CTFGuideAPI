@@ -123,7 +123,7 @@ router.get("/createvm", (request, response) => {
             const uid = request.query.uid
             const password = Math.random().toString(36).slice(-8);
             UserModel.findOne({ uid: uid }, (err, userData) => {
-                UserModel.updateOne({ uid: uid }, {vmPassword : password}, (err, response) => {
+                UserModel.updateOne({ uid: uid }, {vmPassword : password}, (err, vmResponse) => {
                     if (err) {
                         console.log(err);
                         return response.status(401).json({
@@ -142,6 +142,7 @@ router.get("/createvm", (request, response) => {
                                 }
                             })
                             .catch(error => {
+                                console.log(error)
                                 return response.status(500).json({
                                     "message" : "An internal server error has occured."
                                 })
