@@ -132,6 +132,6 @@ async function importSolutions() {
     });
 }
 
-importChallenges()
+//importChallenges()
 importUsers()
-importSolutions()
+//importSolutions()

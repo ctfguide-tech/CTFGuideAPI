@@ -136,7 +136,7 @@ router.get("/createvm", (request, response) => {
 
 
                 // Save VM password to DB.
-                UserModel.updateOne({ uid: uid }, {vmPassword : password}, (err, vmResponse) => {
+                UserModel.updateOne({ uid: uid }, {vmPassword : password, vmUsername: (userData.username).toLowercase()}, (err, vmResponse) => {
                     if (err) {
                         console.log(err);
                         return response.status(401).json({
