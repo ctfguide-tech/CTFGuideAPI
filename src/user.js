@@ -122,7 +122,7 @@ router.get("/createvm", (request, response) => {
         .then((userObject) => {
             const uid = request.query.uid
             const password = Math.random().toString(36).slice(-8);
-            UserModel.findOne({ uid: id }, (err, userData) => {
+            UserModel.findOne({ uid: uid }, (err, userData) => {
                 UserModel.updateOne({ uid: uid }, {vmPassword : password}, (err, response) => {
                     if (err) {
                         console.log(err);
