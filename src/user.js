@@ -107,7 +107,7 @@ router.get("/data", (request, response) => {
 
 
 // Create an account for the user
-router.get("/api/createvm", (request, response) => {
+router.get("/createvm", (request, response) => {
     
     // Missing Fields Handling
     if (!request.query.uid) {
@@ -132,7 +132,7 @@ router.get("/api/createvm", (request, response) => {
                     } else {
     
                         axios
-                            .get('https://terminal-gateway.ctfguide.com/createvm?uid=' + uid + '&password=' + password + "&username=" + userObject.username)
+                            .get('https://terminal-gateway.ctfguide.com/createvm?uid=' + uid + '&password=' + password + "&username=" + userData.username)
                             .then(res => {
                                 if (res.status == 200) {
                                     return response.status(200).json({
@@ -152,6 +152,7 @@ router.get("/api/createvm", (request, response) => {
   
         })
         .catch((error) => {
+            if (error.errorInfo.code) {
             switch (error.errorInfo.code) {
                 case 'auth/user-not-found' :
                     return response.status(500).json({"message" : "Invalid UID provided."});
@@ -161,6 +162,7 @@ router.get("/api/createvm", (request, response) => {
                     "dev" : error.errorInfo
                 })
             }
+        }
     });
 })
 
