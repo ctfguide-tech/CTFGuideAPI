@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 let UserModel = require('../models/user.js')
 const { getAuth } = require('firebase-admin/auth');
-const e = require('express');
 
 // Register a new account
 router.get("/register", (request, response) => {
@@ -123,32 +122,34 @@ router.get("/createvm", (request, response) => {
         .then((userObject) => {
             const uid = request.query.uid
             const password = Math.random().toString(36).slice(-8);
-
-            UserModel.updateOne({ uid: uid }, {vmPassword : password}, (err, response) => {
-                if (err) {
-                    console.log(err);
-                    return response.status(401).json({
-                        "message" : "An internal server error has occured."
-                    })
-                } else {
-
-                    axios
-                        .get('https://terminal-gateway.ctfguide.com/api/createvm?uid=' + uid + '&password=' + password)
-                        .then(res => {
-                            if (res.status == 200) {
-                                return response.status(200).json({
-                                    "message" : "Account created successfully.",
-                                    "password" : password
-                                })
-                            }
+            UserModel.findOne({ uid: id }, (err, userData) => {
+                UserModel.updateOne({ uid: uid }, {vmPassword : password}, (err, response) => {
+                    if (err) {
+                        console.log(err);
+                        return response.status(401).json({
+                            "message" : "An internal server error has occured."
                         })
-                        .catch(error => {
-                            return response.status(500).json({
-                                "message" : "An internal server error has occured."
+                    } else {
+    
+                        axios
+                            .get('https://terminal-gateway.ctfguide.com/api/createvm?uid=' + uid + '&password=' + password)
+                            .then(res => {
+                                if (res.status == 200) {
+                                    return response.status(200).json({
+                                        "message" : "Account created successfully.",
+                                        "password" : password
+                                    })
+                                }
                             })
-                        })
-                }
+                            .catch(error => {
+                                return response.status(500).json({
+                                    "message" : "An internal server error has occured."
+                                })
+                            })
+                    }
+                });
             });
+  
         })
         .catch((error) => {
             switch (error.errorInfo.code) {
