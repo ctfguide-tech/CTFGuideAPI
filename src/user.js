@@ -132,7 +132,7 @@ router.get("/createvm", (request, response) => {
                     } else {
     
                         axios
-                            .get('https://terminal-gateway.ctfguide.com/api/createvm?uid=' + uid + '&password=' + password)
+                            .get('https://terminal-gateway.ctfguide.com/createvm?uid=' + uid + '&password=' + password + "&username=" + userObject.username)
                             .then(res => {
                                 if (res.status == 200) {
                                     return response.status(200).json({
