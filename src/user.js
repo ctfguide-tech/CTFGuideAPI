@@ -107,7 +107,7 @@ router.get("/data", (request, response) => {
 
 
 // Create an account for the user
-router.get("/createvm", (request, response) => {
+router.get("/api/createvm", (request, response) => {
     
     // Missing Fields Handling
     if (!request.query.uid) {
