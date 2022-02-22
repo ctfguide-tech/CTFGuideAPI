@@ -36,6 +36,44 @@ router.get("/specific/:id", (request, response) => {
     })
 });
 
+
+// Fetches leaderboards for a given challenge
+router.get("/leaderboards/:id", (request, response) => {
+    if (!request.params.id) return response.status(400).json({
+        "message" : "Please provide the challenge ID."
+    })
+
+    if (request.params.id === "global") {
+        // We don't actually collect country data so for now we'll just keep it for USA
+        userModel.find({}).sort([['points', -1]]).exec(function(err, model){
+            let data = model;
+            var safeData = [];
+            for (var i = 0; i < data.length; i++) {
+                safeData.push({
+                    'points' : data[i].points,
+                    'username': data[i].username,
+                    'country' : 'USA'
+
+                })
+            }
+
+            return response.status(200).json(safeData);
+        });
+    }
+
+
+/*
+    challengeModel.find({id : request.params.id}, (err, challengeData) => {
+        if (challengeData.length === 0) return response.status(404).json({
+            "message" : "You're looking for a challenge that doesn't exist."
+        })
+        return response.status(200).json(challengeData[0]);
+    })
+    */
+
+});
+
+
 // Checks challenges
 router.get("/check/:id", (request, response) => {
     if (!request.params.id) return response.status(400).json({
