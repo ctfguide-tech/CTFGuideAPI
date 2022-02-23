@@ -49,10 +49,17 @@ router.get("/leaderboards/:id", (request, response) => {
             let data = model;
             var safeData = [];
             for (var i = 0; i < 20; i++) {
+                var myCountry = "Unknown"
+                if (data[i].username == "laphatize") {
+                    console.log(data[i].country)
+                }
+                if (data[i].country) {
+                    myCountry = data[i].country;
+                }
                 safeData.push({
                     'points' : data[i].points,
                     'username': data[i].username,
-                    'country' : '👽 Outerspace',
+                    'country' : myCountry,
                     'pro' : data[i].pro
                 })
             }

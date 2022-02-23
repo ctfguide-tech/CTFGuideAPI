@@ -46,6 +46,9 @@ let userSchema = {
     },
     "pro" : {
         type: Boolean
+    },
+    "country" : {
+        type: String
     }
 }
 
