@@ -48,12 +48,12 @@ router.get("/leaderboards/:id", (request, response) => {
         userModel.find({}).sort([['points', -1]]).exec(function(err, model){
             let data = model;
             var safeData = [];
-            for (var i = 0; i < data.length; i++) {
+            for (var i = 0; i < 20; i++) {
                 safeData.push({
                     'points' : data[i].points,
                     'username': data[i].username,
-                    'country' : 'USA'
-
+                    'country' : '👽 Outerspace',
+                    'pro' : data[i].pro
                 })
             }
 

@@ -43,6 +43,9 @@ let userSchema = {
     },
     "vmUsername" : {
         type: String
+    },
+    "pro" : {
+        type: Boolean
     }
 }
 
