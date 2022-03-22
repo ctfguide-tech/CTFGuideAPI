@@ -49,6 +49,9 @@ let userSchema = {
     },
     "country" : {
         type: String
+    },
+    "tutorialComplete" : {
+        type: Boolean
     }
 }
 

@@ -23,7 +23,8 @@ router.get("/register", (request, response) => {
                 points: 0,
                 createdClasses: [],
                 history: [],
-                classes: []
+                classes: [],
+                tutorialComplete: false
               })
           
               newUser.save()
