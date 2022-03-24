@@ -13,7 +13,7 @@ let userModel = require("../models/user.js");
 // Post a comment
 router.get("/comments/post", (request, response) => {
 
-    console.log("[NEW COMMENT] " + request.query.comment) );
+    console.log("[NEW COMMENT] " + request.query.comment);
     if (!request.params.id) return response.status(400).json({
         "message" : "Please provide the challenge ID."
     })
@@ -57,6 +57,7 @@ router.get("/comments/post", (request, response) => {
 
 
 });
+});
 
 
 
@@ -84,9 +85,10 @@ router.get("/type/:difficulty", (request, response) => {
             "message" : "Hmm, it seems like there are no challenges stored in our database."
         })
         return response.status(200).json(challengeData);
+
     })
 
-}
+    }
 
 });
 
@@ -148,6 +150,7 @@ router.get("/leaderboards/:id", (request, response) => {
     */
 
 });
+
 
 
 // Checks challenges
