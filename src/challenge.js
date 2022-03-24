@@ -10,17 +10,86 @@ let solutionModel = require("../models/solution.js");
 let userModel = require("../models/user.js");
 
 
+// Post a comment
+router.get("/comments/post", (request, response) => {
+
+    console.log("[NEW COMMENT] " + request.query.comment) );
+    if (!request.params.id) return response.status(400).json({
+        "message" : "Please provide the challenge ID."
+    })
 
 
-// Fetch Challenges
-router.get("/all", (request, response) => {
+    let newComment = {
+        "comment" : request.query.comment,
+        "user" : request.query.user,
+    }
+
+
     challengeModel.find({}, (err, challengeData) => {
+        
+
+        if (!challengeData) return response.status(400).json({
+            "message" : "Hmm, it seems like there are no challenges stored in our database."
+        })
+
+        let challenge = challengeData.find(challenge => challenge.id == request.query.id)
+
+        challenge.push(newComment)
+
+
+        challengeModel.updateOne({ cid: challenge.id }, { challenge }, (err, vmResponse) => {
+
+            if (err) {
+                console.log(err);
+                return response.status(401).json({
+                    "message" : "An internal server error has occured."
+                })
+            }
+
+
+            
+
+
+
+
+        });
+    
+
+
+});
+
+
+
+// Fetch Challenge by difficulty
+router.get("/type/:difficulty", (request, response) => {
+
+    // handle invalid difficulty
+    if (request.params.difficulty !== "easy" && request.params.difficulty !== "medium" && request.params.difficulty !== "hard" && request.params.difficulty !== "all") {
+        return response.status(400).json({
+            "message" : "Invalid difficulty. Please use 'easy', 'medium' or 'hard'."
+        })
+    }
+
+    if (request.params.difficulty === "all") {
+        challengeModel.find({}, (err, challengeData) => {
+            if (!challengeData) return response.status(400).json({
+                "message" : "Hmm, it seems like there are no challenges stored in our database."
+            })
+            return response.status(200).json(challengeData);
+        })
+    } else {
+
+    challengeModel.find({difficulty: request.params.difficulty}, (err, challengeData) => {
         if (!challengeData) return response.status(400).json({
             "message" : "Hmm, it seems like there are no challenges stored in our database."
         })
         return response.status(200).json(challengeData);
     })
+
+}
+
 });
+
 
 
 // Fetches a specific challenge using the id
