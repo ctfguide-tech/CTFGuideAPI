@@ -37,7 +37,16 @@ async function importChallenges() {
         console.log("🤔 Attempting to import " + challenge.data().title)
         let dataObj = challenge.data();
         dataObj.id = challenge.id;
-
+        let allowedPoints = 0;
+        if (dataObj.difficulty == "easy") {
+            allowedPoints = 100;
+        } else if (dataObj.difficulty == "medium") {
+            allowedPoints = 200;
+        } else if (dataObj.difficulty == "hard") {
+            allowedPoints = 300;
+        }
+        
+        if (!dataObj.ctflearn_url) {
         let newChallenge = new ChallengeModel({
                 id: challenge.id,
                 attempts: dataObj.attempts,
@@ -50,7 +59,8 @@ async function importChallenges() {
                 views: dataObj.views,
                 platform: dataObj.platform,
                 ctflearn_url: dataObj.ctflearn_url,
-                problem: dataObj.problem
+                problem: dataObj.problem,
+                points: allowedPoints
         })
           
         newChallenge.save()
@@ -60,12 +70,14 @@ async function importChallenges() {
             .catch(err => {
                   return console.log(err);
             })
+        }
     });
 }
 
 
 
 async function importUsers() {
+    let listOfUsers = [];
     console.log("Importing users...")
     const userCollection = db.collection("users");
     const userQuery = await userCollection.get();
@@ -79,17 +91,24 @@ async function importUsers() {
             dataObj.email = userRecord.email
             console.log("🤔 Attempting to import " + dataObj.email)
 
+            let usernameFinal = dataObj.username;
+
+            if (listOfUsers.includes(dataObj.username)) {
+                usernameFinal = dataObj.username + Math.random().toString(36).substring(7);
+            }
+
+            listOfUsers.push(dataObj.username);
             let newUser = new UserModel({
                     uid: user.id,
                     email: dataObj.email,
                     streak: 0,
-                    points: dataObj.points,
+                    points: 0,
                     createdClasses: [],
                     history: [],
                     classes: [],
-                    createdChallenges: dataObj.challenges,
-                    username: dataObj.username,
-                    solvedChallenges: dataObj.solved,
+                    createdChallenges: [],
+                    username: usernameFinal,
+                    solvedChallenges: [],
                     stibarc_username: dataObj.stibarc_username
             })
               
@@ -132,6 +151,4 @@ async function importSolutions() {
     });
 }
 
-//importChallenges()
-importUsers()
-//importSolutions()
+importChallenges()

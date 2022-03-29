@@ -8,6 +8,7 @@ const hook = new Webhook(hookKeyFile.webook_url);
 let challengeModel = require("../models/challenge.js");
 let solutionModel = require("../models/solution.js");
 let userModel = require("../models/user.js");
+const e = require('express');
 
 
 // Post a comment
@@ -99,12 +100,47 @@ router.get("/specific/:id", (request, response) => {
     if (!request.params.id) return response.status(400).json({
         "message" : "Please provide the challenge ID."
     })
+
+    // log to user history
+    //console.log("Saved " + request.params.id + ` to user ${request.query.uid} history.`);
+
+if(request.query.uid) {
+    userModel.findOneAndUpdate({ uid: request.query.uid}, {$push: {history: request.params.id}}, (err, userData2) => {
+      
+      //  console.log(userData2);
+
+        if (err) {
+            console.log(err);
+            return response.status(401).json({
+                "message" : "An internal server error has occured."
+            })
+        }
+
+        if (!userData2) return response.status(400).json({
+
+            "message" : "Hmm, it seems like there are no challenges stored in our database."
+        })
+
+
+        challengeModel.find({id : request.params.id}, (err, challengeData) => {
+            if (challengeData.length === 0) return response.status(404).json({
+                "message" : "You're looking for a challenge that doesn't exist."
+            })
+            return response.status(200).json(challengeData[0]);
+        })
+ 
+    });
+                      
+} else {
     challengeModel.find({id : request.params.id}, (err, challengeData) => {
         if (challengeData.length === 0) return response.status(404).json({
             "message" : "You're looking for a challenge that doesn't exist."
         })
         return response.status(200).json(challengeData[0]);
     })
+}
+
+
 });
 
 
@@ -164,35 +200,85 @@ router.get("/check/:id", (request, response) => {
         if (solutionData.length === 0) return response.status(404).json({
             "message" : "You're attempting to check a challenge that doesn't exist."
         })       
-        
 
-        bcrypt.compare(request.query.flag, solutionData[0].solution, (err, result) => {
-            if (result) {
+        // Fetch Solved Challenges by user
+        userModel.find({uid : request.query.uid}, (err, userData) => {
+            if (userData.length === 0) return response.status(404).json({
+                "message" : "You're attempting to check a challenge that doesn't exist."
+            })
+
+         
+         
+                bcrypt.compare(request.query.flag, solutionData[0].solution, (err, result) => {
+                    if (result) {
+                        // add challenge to solved challenges
+                        
+            if (userData[0].solvedChallenges.includes(request.params.id)) {
+                console.log("already s")
                 return response.status(200).json({
-                    "message" : "OK"
+                    "message" : "OK",
+                    "award" : 0
                 })
             } else {
+                        userModel.findOneAndUpdate({uid : request.query.uid}, {$push : {solvedChallenges : request.params.id}}, (err, userData2) => {
+                            console.log(userData2[0])
+                            if (err) {
+                           //     console.log(err);
+                                return response.status(401).json({
+                                    "message" : "An internal server error has occured."
+                                })
+                            } else {
+                                // fetch points
+                                challengeModel.findOneAndUpdate({id : request.params.id}, {$push: {leaderboards : userData[0].username}}, (err, challengeData) => {
+                               
+                                    //console.log(challengeData)
+                                    let points = challengeData.points;
 
-                
-                userModel.find({uid : request.query.uid}, (err, userData) => {
-                    const embed = new MessageBuilder()
-                    .setTitle('❌ Challenge Failure')
-                    .setColor('#00b0f4')
-                    .setDescription(`**Challenge ID:** ${request.params.id}\n\n**Solution:** ${request.query.flag}\n\n**Expected:** ${solutionData[0].solution}\n\n**User:** ${userData[0].username}\n\n__**Possible Actions**__\n [Warn for cheating](https://admin.ctfguide.com/${request.query.uid}/warn) | [VPN Block + Ban](https://admin.ctfguide.com) `)
-                    .setTimestamp();
-                
-                    hook.send(embed);
 
-                    return response.status(200).json({
-                        "message" : "BAD"
-                    })
+                                    // update points in db
+                                    userModel.findOneAndUpdate({uid : request.query.uid}, {$inc : {points : points}}, (err, userData) => {
+                                    
+
+                                    return response.status(200).json({
+                                        "message" : "OK",
+                                        "award" : points
+                                    })
+                        
+                                });
+                                });
+                            }
+                        });
+
+                    }
+        
+                      
+                    } else {
+        
+                        
+                        userModel.find({uid : request.query.uid}, (err, userData) => {
+                            const embed = new MessageBuilder()
+                            .setTitle('❌ Challenge Failure')
+                            .setColor('#00b0f4')
+                            .setDescription(`**Challenge ID:** ${request.params.id}\n\n**Solution:** ${request.query.flag}\n\n**Expected:** ${solutionData[0].solution}\n\n**User:** ${userData[0].username}\n\n__**Possible Actions**__\n [Warn for cheating](https://admin.ctfguide.com/${request.query.uid}/warn) | [VPN Block + Ban](https://admin.ctfguide.com) `)
+                            .setTimestamp();
+                        
+                            hook.send(embed);
+        
+                            return response.status(200).json({
+                                "message" : "BAD"
+                            })
+                        });
+        
+                       
+        
+        
+                    }
                 });
-
-               
-
-
-            }
+         
         });
+        
+
+      
     })
 
 

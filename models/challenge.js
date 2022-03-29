@@ -41,6 +41,12 @@ let challengeSchema = {
     },
     "ctflearn_url" : {
         type: String
+    },
+    "points" : {
+        type: Number
+    },
+    "leaderboard" : {
+        type: Object
     }
 }
 
