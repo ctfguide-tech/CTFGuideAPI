@@ -19,7 +19,7 @@ router.get("/register", (request, response) => {
             let newUser = new UserModel({
                 uid: request.query.uid,
                 email: userRecord.email,
-                userame: request.query.username,
+                username: request.query.username,
                 streak: 0,
                 points: 0,
                 createdClasses: [],

@@ -47,6 +47,9 @@ let challengeSchema = {
     },
     "leaderboard" : {
         type: Object
+    },
+    "comments" : {
+        type: Array
     }
 }
 

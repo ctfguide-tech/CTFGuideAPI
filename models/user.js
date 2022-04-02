@@ -52,6 +52,9 @@ let userSchema = {
     },
     "tutorialComplete" : {
         type: Boolean
+    },
+    "comments" : {
+        type: Array
     }
 }
 
