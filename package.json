@@ -9,6 +9,7 @@
     "express-router": "^0.0.1",
     "firebase-admin": "^10.0.1",
     "mongoose": "^6.1.2",
+    "multer": "^1.4.4",
     "or": "^0.2.0",
     "yarn": "^1.22.17"
   }

@@ -50,6 +50,15 @@ let challengeSchema = {
     },
     "comments" : {
         type: Array
+    },
+    "hint1" : {
+        type: String
+    },
+    "hint2" : {
+        type: String
+    },
+    "hint3" : {
+        type: String
     }
 }
 

@@ -4,11 +4,17 @@ const bcrypt = require('bcryptjs');
 const { Webhook, MessageBuilder } = require('discord-webhook-node');
 const hookKeyFile = require("../private/secret.json");
 const hook = new Webhook(hookKeyFile.webook_url);
+const bodyParser = require('body-parser');
+let urlencodedParser = bodyParser.urlencoded({
+    extended: true
+})
+router.use(bodyParser.json());
 
 let challengeModel = require("../models/challenge.js");
 let solutionModel = require("../models/solution.js");
 let userModel = require("../models/user.js");
-const e = require('express');
+
+
 
 
 // Post a comment
@@ -128,6 +134,77 @@ router.get("/type/:difficulty", (request, response) => {
 
 });
 
+// Fetch challenge hint
+
+/*
+router.get("/hint/:challengeID", (request, response) => {
+
+    if (!request.params.challengeID) return response.status(400).json({
+        "message": "Please provide the challenge ID."
+    })
+
+    challengeModel.findOne({ id: request.params.challengeID }, (err, challenge) => {
+        if (err) {
+            console.log(err);
+        } else {
+            if (challenge) {
+                return response.status(200).json({
+                    "message": challenge.hints
+                })
+            } else {
+                return response.status(404).json({
+                    "message": "Challenge not found."
+                })
+
+            }
+        }
+    })
+});
+*/
+
+// update challenge
+router.post("/update/:challengeID" , urlencodedParser,  (request, response) => {
+   
+    if (!request.params.challengeID) return response.status(400).json({
+        "message": "Please provide the challenge ID."
+    })
+
+    // check if user owns challenge
+    userModel.findOne({ uid: request.body.uid }, (err, userData) => {
+
+
+        if (userData.createdChallenges.includes(request.params.challengeID)) {
+                // find challenge given id and update with information provided
+                challengeModel.findOne({ id: request.params.challengeID }, (err, challenge) => {
+                    // update challenge with info
+                    console.log(challenge.title)
+                    challenge.title = request.body.title;
+                    challenge.problem  = request.body.problem;
+                    challenge.hint1 = request.body.hint1
+                    challenge.hint2 = request.body.hint2
+                    challenge.hint3 = request.body.hint3
+
+
+
+                    // save challenge
+                    challenge.save((err, challenge) => {
+                        if (err) console.log(err);
+                        return response.status(200).json({
+                            "message": "OK"
+                        })
+                    });
+                });
+
+        } else {
+            return response.status(400).json({
+                "message": "You don't own this challenge."
+            })
+        }
+    
+    });
+
+ 
+});
 
 
 // Fetches a specific challenge using the id
