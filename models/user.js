@@ -55,6 +55,12 @@ let userSchema = {
     },
     "comments" : {
         type: Array
+    },
+    "lessonProgress" : { 
+        type: Object
+    },
+    "lessonsCompleted" : {
+        type: Array
     }
 }
 
