@@ -21,7 +21,7 @@ let userSchema = {
         type: Object
     },
     "classes" : {
-        type: Object
+        type: Array
     },
     "history" : {
         type: Object

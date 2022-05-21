@@ -22,6 +22,18 @@ let classSchema = {
     "assignments" : {
         type: Object,
         required: false
+    },
+    "teachers" : {
+        type: Array,
+        required: true
+    },
+    "members" : {
+        type: Array,
+        required: true
+    },
+    "orgLimit" : {
+        type: Number,
+        required: true
     }
 }
 
