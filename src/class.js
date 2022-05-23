@@ -262,17 +262,19 @@ router.get("/student/my-classes", async (request, response) => {
     }
 
     // query each class id in studentClasses
-    let classData = await classModel.findOne({
+    let classData = await classModel.find({
         id: {
             $in: studentClasses
         }
     });
 
-   console.log(classData.teachers);
+    let finalCopy = [];
+
+   for (var z = 0; z < classData.length; z++) { 
 
     let teachers = await userModel.find({
         uid: {
-            $in: classData.teachers
+            $in: classData[z].teachers
         }
     });
 
@@ -299,9 +301,18 @@ router.get("/student/my-classes", async (request, response) => {
     }
 
 
+
+    finalCopy.push(generatedJSON);
+   }
+
+
+
+   console.log(classData.teachers);
+
+
     // ONLY FOR TESTING!!!
     // REMOVE FOR PROD - THIS LEAKS UIDS
-    return response.status(200).send(generatedJSON);
+    return response.status(200).send(finalCopy);
     
     
 });
