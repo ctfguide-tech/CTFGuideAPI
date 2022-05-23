@@ -253,11 +253,14 @@ router.get("/student/my-classes", async (request, response) => {
     });
 
     if (!userData) { 
+        console.log("User doesn't exist")
+
         return response.status(400).send("Invalid user");
     }
 
     let studentClasses = userData.classes;
-    if (!studentClasses) {
+    if (!studentClasses || studentClasses.length == 0) {
+        console.log("Error - User not in classes")
         return response.status(400).send("You are not a member of any classes");
     }
 
@@ -281,6 +284,8 @@ router.get("/student/my-classes", async (request, response) => {
     console.log(teachers[0]);
     
     let generatedJSON = {
+        "name" : classData[z].name,
+        "description" : classData[z].description,
         "teachers" : [],
         "organization" : "",
         "classId" : request.query.inviteCode,
