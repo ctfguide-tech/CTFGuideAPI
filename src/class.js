@@ -296,8 +296,8 @@ router.get("/student/my-classes", async (request, response) => {
     //})
 
     // query the organization name
-    if (classData.orgName) {
-        generatedJSON.organization = classData.orgName;
+    if (classData[z].orgName) {
+        generatedJSON.organization = classData[z].orgName;
     }
 
 
