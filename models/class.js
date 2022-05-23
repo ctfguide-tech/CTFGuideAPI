@@ -24,8 +24,7 @@ let classSchema = {
         required: false
     },
     "teachers" : {
-        type: Array,
-        required: true
+        type: Array
     },
     "members" : {
         type: Array,
@@ -33,6 +32,10 @@ let classSchema = {
     },
     "orgLimit" : {
         type: Number,
+        required: true
+    },
+    "orgName" : {
+        type: String,
         required: true
     }
 }
