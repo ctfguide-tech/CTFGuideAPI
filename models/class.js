@@ -17,7 +17,7 @@ let classSchema = {
     "org_id" : {
         type: String,
         required: false,
-        unique: true
+        unique: false
     },
     "assignments" : {
         type: Object,
@@ -36,7 +36,7 @@ let classSchema = {
     },
     "orgName" : {
         type: String,
-        required: true
+        required: false
     }
 }
 

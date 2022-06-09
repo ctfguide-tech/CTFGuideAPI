@@ -11,6 +11,8 @@ let userModel = require("../models/user.js");
 let classModel = require("../models/class.js");
 
 const fs = require("fs");
+const { create } = require('../models/class.js');
+const e = require('express');
 
 
 // Create a new class (standard)
@@ -25,17 +27,28 @@ router.get("/create-class/standard", async (request, response) => {
     let user = await userModel.findOne({
         uid: uid
     });
+    let createdClasses = [];
+    // store classes
+    if (user.createdClasses) {
+
+        createdClasses = user.createdClasses;
+
+
+
+    }
+
+   // console.log(createdClasses)
     if (!user) {
         response.status(400).send("Invalid uid");
         return;
     }
-    
+
 
 
     if (!request.query.name) {
         return response.status(400).send("Missing name");
     }
-    
+
 
     if (!request.query.description) {
         return response.status(400).send("Missing description");
@@ -44,6 +57,14 @@ router.get("/create-class/standard", async (request, response) => {
     // Generate a unique class ID.
     var classId = Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
 
+    createdClasses.push(classId)
+    user.updateOne({ createdClasses: createdClasses }, function (err, res) {
+        if (err) {
+            console.log(err)
+        } else {
+            console.log(res)
+        }
+    })
     console.log(classId)
     var orgList = fs.readFileSync("./private/group.json", "utf8");
 
@@ -52,13 +73,13 @@ router.get("/create-class/standard", async (request, response) => {
     var orgLimit = 10;
     let classPos = 0;
 
-    if (request.query.org_id) {
-   
-        for (var i = 0; i < orgs[`organizations`].length; i++) {
-            console.log(orgs[`organizations`][i].id);
+    if (request.query.orgID) {
 
-            if (orgs[`organizations`][i].id == request.query.org_id) {
-               // console.log("Found org");
+        for (var i = 0; i < orgs[`organizations`].length; i++) {
+            // console.log(orgs[`organizations`][i].id);
+
+            if (orgs[`organizations`][i].id == request.query.orgID) {
+                // console.log("Found org");
                 neededOrgData = orgs[`organizations`][i];
                 orgLimt = neededOrgData.limit;
                 classPos = i;
@@ -69,27 +90,43 @@ router.get("/create-class/standard", async (request, response) => {
         }
 
         if (!neededOrgData) {
+            console.log("Org not found");
             return response.status(400).send("Invalid org_id");
         }
-       
+
         let teacherList = [];
         for (var z = 0; z < neededOrgData.teachers.length; z++) {
             teacherList.push(neededOrgData.teachers[z].uid);
         }
-        
+
 
         if (teacherList.includes(request.query.uid)) {
-            
+
             // Update group data
             orgs[`organizations`][`${classPos}`].classes.push(classId);
-      
+
             fs.writeFileSync("./private/group.json", JSON.stringify(orgs));
+            userModel.updateOne(({
+                uid: uid
+            }, { $set: { createdClasses: createdClasses } }), (err, res) => {
+                if (err) {
+                    console.log(err);
+                }
+            });
+
+            console.log("New Class Preview: "); 
+            console.log(`Class ID: ${classId}\nName: ${request.query.name}
+            \nDescription: ${request.query.description}
+            \nOrg ID: ${request.query.orgID}
+            \nOrg Limit: ${orgLimit}
+            \nOrg Name: ${neededOrgData.name}`);
+            
             
             const newClass = new classModel({
                 id: classId,
                 name: request.query.name,
                 description: request.query.description,
-                org_id: request.query.org_id,
+                org_id: request.query.orgID,
                 orgName: neededOrgData.name,
                 assignments: {},
                 teachers: [`${request.query.uid}`],
@@ -114,17 +151,20 @@ router.get("/create-class/standard", async (request, response) => {
                 }
             });
 
-    } else {
-            return response.status(400).send("You are not a teacher in this organization");
-    }
-      //  return response.send(neededOrgData);
-
-
-
-
-  
-    } else {
       
+         //   return response.status(200).send("OK");
+
+        } else {
+            return response.status(400).send("You are not a teacher in this organization");
+        }
+        //  return response.send(neededOrgData);
+
+
+
+
+
+    } else {
+
         const newClass = new classModel({
             id: classId,
             name: request.query.name,
@@ -142,24 +182,24 @@ router.get("/create-class/standard", async (request, response) => {
             }
 
             if (data) {
-               // if (neededOrgData.name) {
-              //      console.log("[CLASS] A new class was created for " + neededOrgData.name);
-             //   } else {
-                    console.log("[CLASS] A new class was created.")
-            //    }
+                // if (neededOrgData.name) {
+                //      console.log("[CLASS] A new class was created for " + neededOrgData.name);
+                //   } else {
+                console.log("[CLASS] A new class was created.")
+                //    }
                 return response.status(200).send("OK");
             }
         });
 
     }
-/*
-    const newClass = new classModel({
-        id: classId,
-        name: "Standard Class",
-        description: "This is a standard class.",
-        org_id: "none",
-        assignments: {}
-    });*/
+    /*
+        const newClass = new classModel({
+            id: classId,
+            name: "Standard Class",
+            description: "This is a standard class.",
+            org_id: "none",
+            assignments: {}
+        });*/
 
 });
 
@@ -167,6 +207,7 @@ router.get("/create-class/standard", async (request, response) => {
 // Join Classes
 
 router.get("/join-class", async (request, response) => {
+    console.log("HIT")
     let uid = request.query.uid;
     let inviteCode = request.query.inviteCode;
 
@@ -225,16 +266,16 @@ router.get("/join-class", async (request, response) => {
                         console.log(err);
                         return response.status(500).send("Error saving class");
                     }
-    
+
                     if (data) {
                         return response.status(200).send({
-                            "status" : "OK",
+                            "status": "OK",
                             "message": "Successfully joined class"
                         });
                     }
                 });
             })
-           
+
         }
     }
 
@@ -245,6 +286,10 @@ router.get("/join-class", async (request, response) => {
 
 });
 
+
+// Fetch student class and related data
+// NOTE THIS ALSO SENDS CLASSES STUDENT MAY OWN
+// So are you even really a student...
 router.get("/student/my-classes", async (request, response) => {
     let uid = request.query.uid;
     // Check UID legit
@@ -252,75 +297,154 @@ router.get("/student/my-classes", async (request, response) => {
         uid: uid
     });
 
-    if (!userData) { 
+    if (!userData) {
         console.log("User doesn't exist")
 
         return response.status(400).send("Invalid user");
     }
 
-    let studentClasses = userData.classes;
-    if (!studentClasses || studentClasses.length == 0) {
-        console.log("Error - User not in classes")
+    let studentClasses = [];
+    let createdClasses = [];
+    studentClasses = userData.classes;
+    createdClasses = userData.createdClasses;
+
+
+    if (!studentClasses || studentClasses.length == 0 || !createdClasses || createdClasses.length == 0) {
+        // console.log("Error - User not in classes")
         return response.status(400).send("You are not a member of any classes");
     }
 
+    for (var i = 0; i < createdClasses.length; i++) {
+        studentClasses.push(createdClasses[i])
+    }
     // query each class id in studentClasses
     let classData = await classModel.find({
         id: {
-            $in: studentClasses
+            $in: studentClasses,
         }
     });
 
     let finalCopy = [];
 
-   for (var z = 0; z < classData.length; z++) { 
+    for (var z = 0; z < classData.length; z++) {
 
-    let teachers = await userModel.find({
-        uid: {
-            $in: classData[z].teachers
+        let teachers = await userModel.find({
+            uid: {
+                $in: classData[z].teachers
+            }
+        });
+
+        console.log(teachers[0]);
+
+        let organizationName = "";
+       // if (classData[z].org)
+        let safeTeachers = [];
+        
+        for (var x = 0; x < teachers.length; x++) {
+            safeTeachers.push(teachers[x].username)
         }
-    });
+        
+        let generatedJSON = {
+            "name": classData[z].name,
+            "description": classData[z].description,
+            "teachers": safeTeachers,
+            "organization": organizationName,
+            "classId": classData[z].id,
+        }
+        // push each teacher name into the array teacherList
 
-    console.log(teachers[0]);
-    
-    let generatedJSON = {
-        "name" : classData[z].name,
-        "description" : classData[z].description,
-        "teachers" : [],
-        "organization" : "",
-        "classId" : request.query.inviteCode,
+        for (var i = 0; i < teachers.length; i++) {
+            generatedJSON.teachers.push(teachers[i].username);
+        }
+
+        //teachers.forEach(teacher => function () {
+        //     generatedJSON.teachers.push(teacher.username);
+        //})
+
+        // query the organization name
+        if (classData[z].orgName) {
+            generatedJSON.organization = classData[z].orgName;
+        }
+
+
+
+        finalCopy.push(generatedJSON);
     }
-    // push each teacher name into the array teacherList
-
-    for (var i = 0; i < teachers.length; i++) {
-        generatedJSON.teachers.push(teachers[i].username);
-    }
-
-    //teachers.forEach(teacher => function () {
-   //     generatedJSON.teachers.push(teacher.username);
-    //})
-
-    // query the organization name
-    if (classData[z].orgName) {
-        generatedJSON.organization = classData[z].orgName;
-    }
 
 
 
-    finalCopy.push(generatedJSON);
-   }
-
-
-
-   console.log(classData.teachers);
+    console.log(classData.teachers);
 
 
     // ONLY FOR TESTING!!!
     // REMOVE FOR PROD - THIS LEAKS UIDS
     return response.status(200).send(finalCopy);
-    
-    
+
+
 });
 
+// Fetch data for specific class
+router.get("/:classid/info", async (request, response) => {
+    if (!request.params.classid) return response.status(400).send("Missing classid");
+
+    let classData = await classModel.findOne({
+        id: request.params.classid
+    });
+
+    if (!classData) {
+        return response.status(400).send("Invalid class");
+    }
+
+    console.log("[DEBUG]: Class info requested for " + classData.name);
+
+
+    // Since we store ID's and not usernames, we'll need to query the database for their usernames using the ID's.
+    // ID's should never be able to be seen by the end of user as they act as the token for the account.
+    // Tbh, this really isn't a smart idea. In the future, we'll need to change how we identify users.
+
+    let safeMembers = [];
+    let safeTeachers = [];
+
+    for (var i = 0; i < classData.teachers.length; i++) {
+        let teacherData = await userModel.findOne({
+            uid: classData.teachers[i]
+        })
+
+        
+
+      //  console.log(teacherData)
+
+        if (teacherData && teacherData.username) {
+            safeTeachers.push(teacherData.username);
+        }
+
+    }
+
+    for (var z = 0; z < classData.members.length; z++) {
+        let memberData = await userModel.findOne({
+            uid: classData.members[z]
+        })
+
+        if (memberData && memberData.username) {
+            safeMembers.push(memberData.username);
+        }
+    }
+
+    console.log(classData.teachers)
+
+
+
+    if (classData.members.includes(request.query.uid) || classData.teachers.includes(request.query.uid)) {
+        return response.status(200).send({
+            "name": classData.name,
+            "description": classData.description,
+            "teachers": safeTeachers,
+            "members" : safeMembers
+        })
+    } else {
+        return response.status(400).send("You are not a member of this class");
+    }
+
+});
 
 module.exports = router;

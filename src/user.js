@@ -29,9 +29,12 @@ router.get("/progress", (request, response) => {
                         doc[`lessonsCompleted`] = [];
                     }
 
+
+
                     if (doc.lessonsCompleted.includes(request.query.lessoncode)) {
-                    
+                     
                         return response.status(200).json({
+
                             "message" : "You have already completed this lesson."
                         })
                     }
