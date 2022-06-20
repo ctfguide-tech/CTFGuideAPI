@@ -37,6 +37,7 @@ router.get("/create-class/standard", async (request, response) => {
 
     }
 
+
    // console.log(createdClasses)
     if (!user) {
         response.status(400).send("Invalid uid");
@@ -58,6 +59,14 @@ router.get("/create-class/standard", async (request, response) => {
     var classId = Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
 
     createdClasses.push(classId)
+    console.log(createdClasses)
+
+    
+
+    console.log(`Currently ${user.username} is in ${user.createdClasses.length} classes
+    but after joining this class, they'll be in ${createdClasses.length} classes.`);
+
+
     user.updateOne({ createdClasses: createdClasses }, function (err, res) {
         if (err) {
             console.log(err)
@@ -105,12 +114,14 @@ router.get("/create-class/standard", async (request, response) => {
             // Update group data
             orgs[`organizations`][`${classPos}`].classes.push(classId);
 
+            if (!orgs[`organization`]) return response.status(400).send("Internal Configuration error has occured.\n\nThe following error took place. The server was unable to reach the organizations folder. ");
+            
             fs.writeFileSync("./private/group.json", JSON.stringify(orgs));
             userModel.updateOne(({
                 uid: uid
             }, { $set: { createdClasses: createdClasses } }), (err, res) => {
                 if (err) {
-                    console.log(err);
+                    console.log("Error regarding writing to database." + err);
                 }
             });
 
