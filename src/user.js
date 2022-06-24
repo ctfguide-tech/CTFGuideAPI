@@ -3,6 +3,77 @@ const router = express.Router();
 let UserModel = require('../models/user.js')
 const { getAuth } = require('firebase-admin/auth');
 const axios = require("axios")
+
+// Update user progress on a lesson
+router.get("/progress", (request, response) => {
+        console.log(`[DEBUG] Progress update from ${request.query.uid}`)
+        // Missing Fields Handling
+        if (!request.query.uid) {
+            return response.status(400).json({
+                "message" : "Malformed Request. Are you missing the user id?"
+            })
+        }
+
+        if (!request.query.lessoncode) {
+            return response.status(400).json({
+                "message" : "Malformed Request. Are you missing the lesson code?"
+            })
+        }
+
+        getAuth()
+        .getUser(request.query.uid)
+        .then((userRecord) => {
+            UserModel.findOne({uid: request.query.uid})
+                .then(doc => {
+                    if (!doc.lessonsCompleted) {
+                        doc[`lessonsCompleted`] = [];
+                    }
+
+
+
+                    if (doc.lessonsCompleted.includes(request.query.lessoncode)) {
+                     
+                        return response.status(200).json({
+
+                            "message" : "You have already completed this lesson."
+                        })
+                    }
+                    doc.lessonsCompleted.push(request.query.lessoncode)
+
+                    doc.save()
+                        .then(doc => {
+                            return response.status(200).json({
+                                "message" : "OK"
+                            })
+                        })
+                        .catch(err => {
+                            console.log(err)
+                            return response.status(500).json({
+                                "message" : "Unable to create save data. Please contact support if you keep running into this issue."
+                            })
+
+                        })
+                })
+
+           
+              
+        })
+        .catch((error) => {
+            switch (error.errorInfo.code) {
+                case 'auth/user-not-found' :
+                    return response.status(500).json({"message" : "Invalid UID provided."});
+                
+                default: return response.status(401).json({
+                    "message" : "An internal server error has occured."
+                })
+            }
+ 
+        });
+
+
+});
+
+
 // Register a new account
 router.get("/register", (request, response) => {
     
@@ -62,6 +133,33 @@ router.get("/register", (request, response) => {
     
 })
 
+
+router.get("/start-lesson", (request, response) => {
+    if (!request.query.uid) {
+        return response.status(400).json({
+            "message" : "Malformed Request. Are you missing the user id?"
+        })
+    }
+
+    getAuth()
+        .getAuth()
+        .getUser(request.query.uid)
+        .then((userRecord) => {
+            UserModel.findOneAndUpdate({uid: request.query.uid}, {$set: {lessonProgress: {}}}, {new: true})
+                .then(doc => {
+                    return response.status(200).json({
+                        "message" : `${request.query.lessonID} Lesson has been started.`
+                    })
+                })
+                .catch(err => {
+                    console.log(err)
+                    return response.status(500).json({
+                        "message" : "Unable to create save data. Please contact support if you keep running into this issue."
+                    })
+                })
+        });
+        
+});
 
 router.get("/tutorial", (request, response) => {
     

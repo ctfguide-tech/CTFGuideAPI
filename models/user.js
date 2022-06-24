@@ -21,7 +21,7 @@ let userSchema = {
         type: Object
     },
     "classes" : {
-        type: Object
+        type: Array
     },
     "history" : {
         type: Object
@@ -54,6 +54,12 @@ let userSchema = {
         type: Boolean
     },
     "comments" : {
+        type: Array
+    },
+    "lessonProgress" : { 
+        type: Object
+    },
+    "lessonsCompleted" : {
         type: Array
     }
 }
