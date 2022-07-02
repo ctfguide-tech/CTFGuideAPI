@@ -4,6 +4,47 @@ let UserModel = require('../models/user.js')
 const { getAuth } = require('firebase-admin/auth');
 const axios = require("axios")
 
+// Check if a username is valid
+router.get("/checkusername", (request, response) => {
+
+    console.log("Endpoint hit")
+    var username = (request.query.username).toLowerCase();
+    var badChar = /[!@#$%^&*()+\-=\[\]{};':"\\|,.<>\/?]+/;
+
+    // run the same client side checks again just incase
+    if (!username || username.length < 5 || username.length > 15 || badChar.test(username)) {
+        console.log(username)
+        return response.status(400).json({
+            "message" : "Username invalid format."
+        })
+    } 
+
+    // check if username is already taken
+    UserModel.findOne({
+        username : username
+    }).then(user => {
+        
+     
+  
+        if (user) {
+            console.log(user)
+            return response.status(400).json({
+                "message" : "Username already taken."
+            })
+        }
+
+        return response.status(200).json({
+            "message" : "Username available."
+        });
+    })
+
+
+
+
+
+})
+
+
 // Update user progress on a lesson
 router.get("/progress", (request, response) => {
         console.log(`[DEBUG] Progress update from ${request.query.uid}`)
