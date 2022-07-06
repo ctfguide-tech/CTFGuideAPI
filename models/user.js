@@ -6,6 +6,12 @@ let userSchema = {
         required: true, 
         unique: true
     },
+    "otp" : {
+        type: String
+    },
+    "emailVerified" : {
+        type: Boolean,
+    },
     "email": {
         type: String,
         required: true,

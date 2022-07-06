@@ -8,6 +8,8 @@
     "express": "^4.17.2",
     "express-router": "^0.0.1",
     "firebase-admin": "^10.0.1",
+    "form-data": "^4.0.0",
+    "mailgun.js": "^7.0.3",
     "mongoose": "^6.1.2",
     "multer": "^1.4.4",
     "or": "^0.2.0",
