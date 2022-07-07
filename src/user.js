@@ -211,11 +211,52 @@ router.get("/progress", (request, response) => {
 router.get("/register", (request, response) => {
     
     // Missing Fields Handling
-    if (!request.query.uid) {
+    if (!request.query.uid || !request.query.username || !request.query.age || !request.query.country) {
         return response.status(400).json({
-            "message" : "Malformed Request. Are you missing the user id?"
+            "message" : "Malformed Request. Missing parameters."
         })
     }
+
+    var username = (request.query.username).toLowerCase();
+    var badChar = /[!@#$%^&*()+\-=\[\]{};':"\\|,.<>\/?]+/;
+
+    // run the same client side checks again just incase
+    if (!username || username.length < 5 || username.length > 15 || badChar.test(username)) {
+        console.log(username)
+        return response.status(400).json({
+            "message" : "Username invalid format."
+        })
+    } 
+
+    UserModel.findOne({
+        uid : request.query.uid
+    }).then(user => {
+        
+     
+  
+        if (user) {
+            return response.status(200).json({
+                "message" : "Already done"
+            });
+        }  else {
+
+    // check if username is already taken
+    UserModel.findOne({
+        username : username
+    }).then(user => {
+        
+     
+  
+        if (user) {
+            return response.status(400).json({
+                "message" : "Username taken."
+            });
+        }
+
+        
+    })
+
+
 
     getAuth()
         .getUser(request.query.uid)
@@ -227,15 +268,17 @@ router.get("/register", (request, response) => {
                 streak: 0,
                 points: 0,
                 createdClasses: [],
+                age: request.query.age,
+                country: request.query.country,
                 history: [],
                 classes: [],
-                tutorialComplete: false
+                tutorialComplete: false,
+                emailVerified: false
               })
           
               newUser.save()
                 .then(doc => {
                   return response.status(200).json({
-                      "message" : "Account data has been updated."
                   })
                 })
                 .catch(err => {
@@ -264,6 +307,11 @@ router.get("/register", (request, response) => {
         
 
     
+        }
+
+        
+    })
+
 })
 
 

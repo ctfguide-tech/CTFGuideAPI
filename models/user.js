@@ -3,8 +3,10 @@ const mongoose = require('mongoose');
 let userSchema = {
     "uid" : {
         type: String,
-        required: true, 
-        unique: true
+        required: true
+    },
+    "age" : {
+        type: Number
     },
     "otp" : {
         type: String
