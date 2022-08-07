@@ -44,7 +44,9 @@ router.get("/sendOTP", (request, response) => {
                     
                     var userEmail = doc.email;
                     console.log(userEmail   )
-                    let otp = Math.floor(Math.random() * 1000000);
+                   // let otp = Math.floor(Math.random() * 1000000);
+                    let otp = Math.floor(100000 + Math.random() * 900000);
+
                     // create/store otp in database
                   //  UserModel.findOneAndUpdate({uid: request.query.uid}, {$set: {otp: otp}})
                     doc[`otp`] = otp;
@@ -230,6 +232,23 @@ router.get("/register", (request, response) => {
      
   
         if (user) {
+            if (!user.username) {
+                UserModel.findOne({uid: request.query.uid})
+                .then(doc => {
+                    doc.username = request.query.username
+                    doc.save()
+                        .then(doc => {
+                            return response.status(200).json({
+                            })
+                        })
+                        .catch(err => {
+                            console.log(err)
+                          
+
+                        })
+                })
+
+            }
             return response.status(200).json({
                 "message" : "Already done"
             });
