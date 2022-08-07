@@ -22,7 +22,7 @@ router.get("/checkOTP", (request, response) => {
             user.save();
             return response.status(200).send("Valid OTP")
         } else {
-            return response.status(401).send("Bad OTP");
+            return response.status(200).send("Bad OTP");
         }
 
     });
@@ -49,11 +49,6 @@ router.get("/sendOTP", (request, response) => {
                   //  UserModel.findOneAndUpdate({uid: request.query.uid}, {$set: {otp: otp}})
                     doc[`otp`] = otp;
 
-
-                    setTimeout(() => {
-                        doc[`otp`] = null;
-                        doc.save()
-                    }, 300000);
 
                     
                     doc.save();
