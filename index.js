@@ -33,6 +33,6 @@ let ChallengeModel = require('./models/challenge.js')
 
 http.listen(3001, () => {
   // Run Tests
-  console.clear()
+  
   console.log("🚀 Server is running on port 3001");
 });

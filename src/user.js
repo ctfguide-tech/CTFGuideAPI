@@ -2,7 +2,137 @@ const express = require('express');
 const router = express.Router();
 let UserModel = require('../models/user.js')
 const { getAuth } = require('firebase-admin/auth');
+const secret = require("../private/secret.json")
+
 const axios = require("axios")
+const formData = require('form-data');
+const Mailgun = require('mailgun.js');
+const mailgun = new Mailgun(formData);
+console.log(secret.mg)
+const client = mailgun.client({username: 'api', key: secret.mg});
+
+router.get("/checkOTP", (request, response) => {
+    let uid = request.query.uid;
+    let otp = request.query.otp;
+
+    UserModel.findOne({uid: uid}, (err, user) => {
+        if (err) return;
+        if (user.otp == otp) {
+            user[`emailVerified`] = true;
+            user.save();
+            return response.status(200).send("Valid OTP")
+        } else {
+            return response.status(200).send("Bad OTP");
+        }
+
+    });
+})
+
+// Send OTP Code
+router.get("/sendOTP", (request, response) => {
+    let uid = request.query.uid;
+    if (!uid) return response.status(400).send({
+        "message" : "No UID provided"
+    })
+
+    getAuth()
+    .getUser(request.query.uid)
+    .then((userRecord) => {
+        UserModel.findOne({uid: request.query.uid})
+            .then(doc => {
+                if (doc) {
+                    
+                    var userEmail = doc.email;
+                    console.log(userEmail   )
+                   // let otp = Math.floor(Math.random() * 1000000);
+                    let otp = Math.floor(100000 + Math.random() * 900000);
+
+                    // create/store otp in database
+                  //  UserModel.findOneAndUpdate({uid: request.query.uid}, {$set: {otp: otp}})
+                    doc[`otp`] = otp;
+
+
+                    
+                    doc.save();
+                      const messageData = {
+                        from: "CTFGuide Verification <verification@mail.ctfguide.com>",
+                        to: [userEmail],
+                        subject: "CTFGuide Verification Code",
+                        text: `Your verification code is: ${otp}`
+                      };
+                      
+                      client.messages.create("mail.ctfguide.com", messageData)
+                       .then((res) => {
+                         console.log(res);
+                       })
+                       .catch((err) => {
+                         console.error(err);
+                       });
+                      
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                    }
+
+
+
+
+
+            });
+    });
+
+    response.status(200).send({
+        "message" : "Email attempted"
+    })
+   
+})
+
+// Check if a username is valid
+router.get("/checkusername", (request, response) => {
+
+    console.log("Endpoint hit")
+    var username = (request.query.username).toLowerCase();
+    var badChar = /[!@#$%^&*()+\-=\[\]{};':"\\|,.<>\/?]+/;
+
+    // run the same client side checks again just incase
+    if (!username || username.length < 5 || username.length > 15 || badChar.test(username)) {
+        console.log(username)
+        return response.status(400).json({
+            "message" : "Username invalid format."
+        })
+    } 
+
+    // check if username is already taken
+    UserModel.findOne({
+        username : username
+    }).then(user => {
+        
+     
+  
+        if (user) {
+            console.log(user)
+            return response.status(400).json({
+                "message" : "Username already taken."
+            })
+        }
+
+        return response.status(200).json({
+            "message" : "Username available."
+        });
+    })
+
+
+
+
+
+})
+
 
 // Update user progress on a lesson
 router.get("/progress", (request, response) => {
@@ -78,11 +208,69 @@ router.get("/progress", (request, response) => {
 router.get("/register", (request, response) => {
     
     // Missing Fields Handling
-    if (!request.query.uid) {
+    if (!request.query.uid || !request.query.username || !request.query.age || !request.query.country) {
         return response.status(400).json({
-            "message" : "Malformed Request. Are you missing the user id?"
+            "message" : "Malformed Request. Missing parameters."
         })
     }
+
+    var username = (request.query.username).toLowerCase();
+    var badChar = /[!@#$%^&*()+\-=\[\]{};':"\\|,.<>\/?]+/;
+
+    // run the same client side checks again just incase
+    if (!username || username.length < 5 || username.length > 15 || badChar.test(username)) {
+        console.log(username)
+        return response.status(400).json({
+            "message" : "Username invalid format."
+        })
+    } 
+
+    UserModel.findOne({
+        uid : request.query.uid
+    }).then(user => {
+        
+     
+  
+        if (user) {
+            if (!user.username) {
+                UserModel.findOne({uid: request.query.uid})
+                .then(doc => {
+                    doc.username = request.query.username
+                    doc.save()
+                        .then(doc => {
+                            return response.status(200).json({
+                            })
+                        })
+                        .catch(err => {
+                            console.log(err)
+                          
+
+                        })
+                })
+
+            }
+            return response.status(200).json({
+                "message" : "Already done"
+            });
+        }  else {
+
+    // check if username is already taken
+    UserModel.findOne({
+        username : username
+    }).then(user => {
+        
+     
+  
+        if (user) {
+            return response.status(400).json({
+                "message" : "Username taken."
+            });
+        }
+
+        
+    })
+
+
 
     getAuth()
         .getUser(request.query.uid)
@@ -94,15 +282,17 @@ router.get("/register", (request, response) => {
                 streak: 0,
                 points: 0,
                 createdClasses: [],
+                age: request.query.age,
+                country: request.query.country,
                 history: [],
                 classes: [],
-                tutorialComplete: false
+                tutorialComplete: false,
+                emailVerified: false
               })
           
               newUser.save()
                 .then(doc => {
                   return response.status(200).json({
-                      "message" : "Account data has been updated."
                   })
                 })
                 .catch(err => {
@@ -131,6 +321,11 @@ router.get("/register", (request, response) => {
         
 
     
+        }
+
+        
+    })
+
 })
 
 
