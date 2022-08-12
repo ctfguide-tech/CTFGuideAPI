@@ -59,7 +59,14 @@ let challengeSchema = {
     },
     "hint3" : {
         type: String
+    },
+    "verified" : {
+        type: Boolean
+    },
+    "safeName" : {
+        type: String
     }
+
 }
 
 

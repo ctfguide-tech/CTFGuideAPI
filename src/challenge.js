@@ -4,17 +4,209 @@ const bcrypt = require('bcryptjs');
 const { Webhook, MessageBuilder } = require('discord-webhook-node');
 const hookKeyFile = require("../private/secret.json");
 const hook = new Webhook(hookKeyFile.webook_url);
+const fetch = require('node-fetch');
 const bodyParser = require('body-parser');
 let urlencodedParser = bodyParser.urlencoded({
     extended: true
 })
 router.use(bodyParser.json());
+const secret = require("../private/secret.json")
 
 let challengeModel = require("../models/challenge.js");
 let solutionModel = require("../models/solution.js");
 let userModel = require("../models/user.js");
 
 
+const axios = require("axios")
+const formData = require('form-data');
+const Mailgun = require('mailgun.js');
+const mailgun = new Mailgun(formData);
+console.log(secret.mg)
+const client = mailgun.client({username: 'api', key: secret.mg});
+
+// verify a challenge
+router.get('/verify', urlencodedParser, async (request, response) => {
+
+   
+    let challenge = await challengeModel.findOne({
+        id: request.query.id,
+        uid: request.query.uid
+    });
+
+
+    // get username
+    let user = await userModel.findOne({
+        uid: request.query.uid
+    });
+    let username = user.username;
+
+    if (username == "laphatize" || username == "herronjo") {
+
+        challenge.verified = true;
+        await challenge.save();
+
+        const messageData = {
+            from: "CTFGuide <noreply@mail.ctfguide.com>",
+            to: user.email,
+            subject: "Congrats! Your challenge is verified.",
+            text: `Hello, ${username}! We're happy to let you know that your challenge, "${challenge.title}" is verified and can now be seen by others on CTFGuide. We appreciate your contribution to CTFGuide!`
+          };
+          
+          client.messages.create("mail.ctfguide.com", messageData)
+           .then((res) => {
+             console.log(res);
+           })
+           .catch((err) => {
+             console.error(err);
+           });
+
+        response.send("success");
+
+    } else {
+        response.send("fail");
+    }
+
+
+    var params = {
+      
+        embeds: [
+            {
+                "title": "✅ Challenge Verified",
+                "color": 15258703,
+
+                "description" : `Name: ${challenge.title}\nDescription: ${challenge.problem}\nCategory: ${challenge.category}\nDifficulty: ${challenge.difficulty}\nLink: https://ctfguide.com/challenges/${request.query.id}\n\nVerified by: ${username}`,
+            }
+        ]
+    }
+
+    fetch(secret.d1, {
+        method: "POST",
+        headers: {
+            'Content-type': 'application/json'
+        },
+        body: JSON.stringify(params)
+    }).then(res => {
+        console.log(res);
+    }) 
+    
+})
+
+   
+// Create a challenge
+router.post("/create-challenge", urlencodedParser, async (request, response) => {
+    console.log("endpoint hit")
+    if (!request.body.title || !request.body.description || !request.body.solution || !request.body.difficulty || !request.body.category || !request.body.hint1 || !request.body.hint2 || !request.body.hint3) {
+        response.status(400).json({
+            message: "Please fill out all fields"
+        });
+        return;
+    }
+
+    let points = 0;
+    
+    if (request.body.difficulty == "easy") {
+        points = 100;
+    } else if (request.body.difficulty == "medium") {
+        points = 200;
+    } else if (request.body.difficulty == "hard") {
+        points = 300;
+    } else {
+        return response.status(400).json({
+            message: "Please select a valid difficulty"
+        });
+    }
+
+
+    // fetch the author provided to user id
+    let authorData = await userModel.findOne({
+        uid: request.body.uid
+    });
+
+    let verifiedStatus = false;
+
+    if (authorData.username == "laphatize" || authorData.username == "herronjo") {
+        verifiedStatus = true;
+    }
+
+    
+
+    // generate a random id
+    let id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+
+    authorData.createdChallenges.push(id);
+    await authorData.save();
+
+    let challenge = new challengeModel({
+        id: id,
+        title: request.body.title,
+        problem: request.body.description,
+        category: request.body.category,
+        difficulty: request.body.difficulty,
+        points: points,
+        hint1: request.body.hint1,
+        hint2: request.body.hint2,
+        hint3: request.body.hint3,
+        safeName: authorData.username,
+        verified: verifiedStatus,
+        views: 0,
+        attempts: 0,
+        goodAttempts: 0
+    });
+
+
+    var params = {
+        content: "@here",
+        embeds: [
+            {
+                "title": "📝 New Challenge",
+                "color": 15258703,
+
+                "description" : `Name: ${challenge.title}\nDescription: ${challenge.problem}\nCategory: ${challenge.category}\nDifficulty: ${challenge.difficulty}\nLink: https://ctfguide.com/challenges/${challenge.id}\n\n`,
+            }
+        ]
+    }
+
+    fetch(secret.d2, {
+        method: "POST",
+        headers: {
+            'Content-type': 'application/json'
+        },
+        body: JSON.stringify(params)
+    }).then(res => {
+        console.log(res);
+    }) 
+
+
+
+    challenge.save((error) => {
+        if (error) {
+            console.log(error);
+            response.status(500).json({
+                message: "Error creating challenge"
+            });
+        } else {
+            response.status(200).json({
+                message: "Challenge created"
+            });
+        }
+    }
+
+    );
+ 
+    // hash solution with bcrypt
+    let salt = await bcrypt.genSalt(10);
+    let hashedSolution = await bcrypt.hash(request.body.solution, salt);
+    
+
+    // store solution
+    let solution = new solutionModel({
+        id: id,
+        solution: hashedSolution
+    });
+
+    await solution.save();
+});
 
 
 // Post a comment
