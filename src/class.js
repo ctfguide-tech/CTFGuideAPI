@@ -9,6 +9,7 @@ let challengeModel = require("../models/challenge.js");
 let solutionModel = require("../models/solution.js");
 let userModel = require("../models/user.js");
 let classModel = require("../models/class.js");
+let orgModel = require("../models/org.js");
 
 const fs = require("fs");
 const { create } = require('../models/class.js');
@@ -23,22 +24,17 @@ router.get("/create-class/standard", async (request, response) => {
         return;
     }
 
-    // check UID legitimacy
     let user = await userModel.findOne({
         uid: uid
     });
+
     let createdClasses = [];
-    // store classes
     if (user.createdClasses) {
-
         createdClasses = user.createdClasses;
-
-
-
     }
 
 
-   // console.log(createdClasses)
+    // console.log(createdClasses)
     if (!user) {
         response.status(400).send("Invalid uid");
         return;
@@ -55,13 +51,12 @@ router.get("/create-class/standard", async (request, response) => {
         return response.status(400).send("Missing description");
     }
 
-    // Generate a unique class ID.
     var classId = Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
 
     createdClasses.push(classId)
     console.log(createdClasses)
 
-    
+
 
     console.log(`Currently ${user.username} is in ${user.createdClasses.length} classes
     but after joining this class, they'll be in ${createdClasses.length} classes.`);
@@ -74,143 +69,54 @@ router.get("/create-class/standard", async (request, response) => {
             console.log(res)
         }
     })
-    console.log(classId)
-    var orgList = fs.readFileSync("./private/group.json", "utf8");
 
-    var orgs = JSON.parse(orgList);
-    var neededOrgData;
-    var orgLimit = 10;
-    let classPos = 0;
+    
 
-    if (request.query.orgID) {
+    let orgLock = false
+    let orgLimit = 10;
+    let org = "";
 
-        for (var i = 0; i < orgs[`organizations`].length; i++) {
-            // console.log(orgs[`organizations`][i].id);
+    if (user.membership == true) {
 
-            if (orgs[`organizations`][i].id == request.query.orgID) {
-                // console.log("Found org");
-                neededOrgData = orgs[`organizations`][i];
-                orgLimt = neededOrgData.limit;
-                classPos = i;
-                break;
-            }
-
-
-        }
-
-        if (!neededOrgData) {
-            console.log("Org not found");
-            return response.status(400).send("Invalid org_id");
-        }
-
-        let teacherList = [];
-        for (var z = 0; z < neededOrgData.teachers.length; z++) {
-            teacherList.push(neededOrgData.teachers[z].uid);
-        }
-
-
-        if (teacherList.includes(request.query.uid)) {
-
-            // Update group data
-            orgs[`organizations`][`${classPos}`].classes.push(classId);
-
-            if (!orgs[`organization`]) return response.status(400).send("Internal Configuration error has occured.\n\nThe following error took place. The server was unable to reach the organizations folder. ");
-            
-            fs.writeFileSync("./private/group.json", JSON.stringify(orgs));
-            userModel.updateOne(({
-                uid: uid
-            }, { $set: { createdClasses: createdClasses } }), (err, res) => {
-                if (err) {
-                    console.log("Error regarding writing to database." + err);
-                }
-            });
-
-            console.log("New Class Preview: "); 
-            console.log(`Class ID: ${classId}\nName: ${request.query.name}
-            \nDescription: ${request.query.description}
-            \nOrg ID: ${request.query.orgID}
-            \nOrg Limit: ${orgLimit}
-            \nOrg Name: ${neededOrgData.name}`);
-            
-            
-            const newClass = new classModel({
-                id: classId,
-                name: request.query.name,
-                description: request.query.description,
-                org_id: request.query.orgID,
-                orgName: neededOrgData.name,
-                assignments: {},
-                teachers: [`${request.query.uid}`],
-                orgLimit: orgLimit,
-                members: []
-            });
-
-            newClass.save((err, data) => {
-                if (err) {
-                    console.log(err);
-                    return response.status(500).send("Error saving class");
-                }
-
-                if (data) {
-                    if (neededOrgData.name) {
-                        console.log("[CLASS] A new class was created for " + neededOrgData.name);
-                    } else {
-                        console.log("[CLASS] A new class was created.")
-                    }
-                    return response.status(200).send("OK");
-
-                }
-            });
-
-      
-         //   return response.status(200).send("OK");
-
+    if (request.query.orgLock) {
+        let orgid = user.email.split("@")[1];
+        let org = await orgModel.findOne({
+            id: orgid
+        });
+        if (!org) {
+            return response.status(400).send("Invalid org");
         } else {
-            return response.status(400).send("You are not a teacher in this organization");
+            orgLock = true;
+            org = orgId;
+
         }
-        //  return response.send(neededOrgData);
-
-
-
-
-
-    } else {
-
-        const newClass = new classModel({
-            id: classId,
-            name: request.query.name,
-            description: request.query.description,
-            assignments: {},
-            teachers: [`${request.query.uid}`],
-            orgLimit: orgLimit,
-            members: []
-        });
-
-        newClass.save((err, data) => {
-            if (err) {
-                console.log(err);
-                return response.status(500).send("Error saving class");
-            }
-
-            if (data) {
-                // if (neededOrgData.name) {
-                //      console.log("[CLASS] A new class was created for " + neededOrgData.name);
-                //   } else {
-                console.log("[CLASS] A new class was created.")
-                //    }
-                return response.status(200).send("OK");
-            }
-        });
+    }
 
     }
-    /*
-        const newClass = new classModel({
-            id: classId,
-            name: "Standard Class",
-            description: "This is a standard class.",
-            org_id: "none",
-            assignments: {}
-        });*/
+
+    const newClass = new classModel({
+        id: classId,
+        name: request.query.name,
+        description: request.query.description,
+        assignments: {},
+        teachers: [`${request.query.uid}`],
+        orgLock: orgLock,
+        orgLimit: orgLimit,
+        org: orgId,
+        members: []
+    });
+
+    newClass.save((err, data) => {
+        if (err) {
+            console.log(err);
+            return response.status(500).send("Error saving class");
+        }
+
+        if (data) {
+            return response.status(200).send("OK");
+        }
+    });
+
 
 });
 
@@ -348,13 +254,13 @@ router.get("/student/my-classes", async (request, response) => {
         console.log(teachers[0]);
 
         let organizationName = "";
-       // if (classData[z].org)
+        // if (classData[z].org)
         let safeTeachers = [];
-        
+
         for (var x = 0; x < teachers.length; x++) {
             safeTeachers.push(teachers[x].username)
         }
-        
+
         let generatedJSON = {
             "name": classData[z].name,
             "description": classData[z].description,
@@ -421,9 +327,9 @@ router.get("/:classid/info", async (request, response) => {
             uid: classData.teachers[i]
         })
 
-        
 
-      //  console.log(teacherData)
+
+        //  console.log(teacherData)
 
         if (teacherData && teacherData.username) {
             safeTeachers.push(teacherData.username);
@@ -450,7 +356,7 @@ router.get("/:classid/info", async (request, response) => {
             "name": classData.name,
             "description": classData.description,
             "teachers": safeTeachers,
-            "members" : safeMembers
+            "members": safeMembers
         })
     } else {
         return response.status(400).send("You are not a member of this class");

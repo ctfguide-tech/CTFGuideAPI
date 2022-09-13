@@ -524,6 +524,25 @@ router.get("/check/:id", (request, response) => {
                             "award": 0
                         })
                     } else {
+
+                        if (!userData[0].solvedChallenges) {
+                            userData[0].solvedChallenges = [`${request.params.id}`];
+                            challengeModel.findOneAndUpdate({ id: request.params.id }, { solvedChallenges : userData[0].solvedChallenges }, (err, challengeData) => {
+                                
+                                let points = challengeData.points;
+                                userModel.findOneAndUpdate({ uid: request.query.uid }, { $inc: { points: points } }, (err, userData) => {
+
+
+                                    return response.status(200).json({
+                                        "message": "OK",
+                                        "award": points
+                                    })
+
+                                });
+                           
+                            });
+                             
+                        } else {
                         userModel.findOneAndUpdate({ uid: request.query.uid }, { $push: { solvedChallenges: request.params.id } }, (err, userData2) => {
                             console.log(userData2[0])
                             if (err) {
@@ -552,6 +571,7 @@ router.get("/check/:id", (request, response) => {
                                 });
                             }
                         });
+                    }
 
                     }
 
