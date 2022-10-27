@@ -14,7 +14,7 @@ let orgModel = require("../models/org.js");
 const fs = require("fs");
 const { create } = require('../models/class.js');
 const e = require('express');
-
+console.log("[OK] Classes Model Loaded /api/classes")
 
 // Create a new class (standard)
 router.get("/create-class/standard", async (request, response) => {

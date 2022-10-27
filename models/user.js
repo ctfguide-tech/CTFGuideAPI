@@ -5,6 +5,12 @@ let userSchema = {
         type: String,
         required: true
     },
+    "bio" : {
+        type: String
+    },
+    "accountType" : {
+        type: String
+    },
     "age" : {
         type: Number
     },
@@ -69,6 +75,9 @@ let userSchema = {
     },
     "lessonsCompleted" : {
         type: Array
+    },
+    "orgEnrollment" : {
+        type: Object
     }
 }
 

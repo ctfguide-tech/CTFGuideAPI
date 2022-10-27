@@ -21,9 +21,8 @@ const axios = require("axios")
 const formData = require('form-data');
 const Mailgun = require('mailgun.js');
 const mailgun = new Mailgun(formData);
-console.log(secret.mg)
 const client = mailgun.client({username: 'api', key: secret.mg});
-
+console.log("[OK] Challenge Model loaded /api/challenge");
 // verify a challenge
 router.get('/verify', urlencodedParser, async (request, response) => {
 
@@ -54,10 +53,10 @@ router.get('/verify', urlencodedParser, async (request, response) => {
           
           client.messages.create("mail.ctfguide.com", messageData)
            .then((res) => {
-             console.log(res);
+         //    console.log(res);
            })
            .catch((err) => {
-             console.error(err);
+          //   console.error(err);
            });
 
         response.send("success");

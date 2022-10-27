@@ -1,10 +1,8 @@
 const mongoose = require('mongoose');
 
 let orgSchema = {
-    "id" : {
+    "id": {
         type: String,
-        required: true,
-        unique: true
     },
     "name": {
         type: String,
@@ -15,15 +13,33 @@ let orgSchema = {
     "teachers": {
         type: Array,
     },
-    "owners": {
+    "admin": {
         type: Array,
     },
-    "billing_email" : {
+    "owner": {
         type: String,
     },
-    "next_billing_date" : {
+    "billing_email": {
         type: String,
-    }
+    },
+    "next_billing_date": {
+        type: String,
+    },
+    "activated": {
+        type: Boolean,
+    },
+    "dateActivated": {
+        type: String,
+    },
+    "inviteCode": {
+        type: String,
+    },
+    "oid_billing": {
+        type: String,
+    },
+    "totalStudents" : 0,
+    "totalTeachers" : 0
+
 
 }
 
