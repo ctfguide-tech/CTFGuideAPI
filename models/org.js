@@ -35,10 +35,12 @@ let orgSchema = {
         type: String,
     },
     "oid_billing": {
+
         type: String,
     },
     "totalStudents" : 0,
-    "totalTeachers" : 0
+    "totalTeachers" : 0,
+    "plan" : ""
 
 
 }

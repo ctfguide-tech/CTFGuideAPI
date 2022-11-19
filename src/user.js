@@ -9,9 +9,45 @@ const formData = require('form-data');
 const Mailgun = require('mailgun.js');
 const mailgun = new Mailgun(formData);
 const client = mailgun.client({ username: 'api', key: secret.mg });
-
+const { Configuration, OpenAIApi } = require("openai");
+const { response } = require('express');
+const configuration = new Configuration({
+  apiKey: secret.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
 
 console.log("[OK] Loaded /api/users");
+
+// check user quiz
+router.get('/aicheck', async (req, res) => {
+    let user = await UserModel.findOne({ email: req.query.email })
+    if (user) {
+    var data1 = "none"
+
+    // handle those weird cases
+    while (data1.replace(/\s/g, '') != "Yes." || data1.replace(/\s/g, '') != "No.") {
+
+        // we're setting the temperature here to 0 to prevent the AI from being too creative and prevent reruns of the same question
+        const data1 = await openai.createCompletion("text-davinci-002", {
+            prompt: `Respond with "Yes." or "No.", if the answer "${userInput}" a correct response to the question "${question}"`,
+            temperature: 0,
+            max_tokens: 400,
+            top_p: 1,
+            frequency_penalty: 0.8,
+            presence_penalty: 0,
+          }).catch(err => console.log(err))
+
+          if (data1) {
+            response.status(200).send(data1.replace(/\s/g, ''))
+          }
+        }
+      
+    } else {
+        response.status(400).send("Something went wrong.")
+
+    }
+})
+
 
 
 router.post("/set-bio", (request, response) => {
