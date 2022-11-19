@@ -6,3 +6,8 @@ migration/
 private/
 ca-certificate.crt
 workspace.code-workspace
+
+# cleanup
+.DS_Store
+vscode
+.idea
