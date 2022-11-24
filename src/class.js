@@ -9,7 +9,7 @@ let challengeModel = require("../models/challenge.js");
 let solutionModel = require("../models/solution.js");
 let userModel = require("../models/user.js");
 let classModel = require("../models/class.js");
-let orgModel = require("../models/org.js");
+let orgModel  = require("../models/org.js");
 
 const fs = require("fs");
 const { create } = require('../models/class.js');

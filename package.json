@@ -4,6 +4,13 @@
   "devDependencies": {
     "nodemon": "^2.0.20"
   },
+  "apidoc": {
+    "title": "CTFGuide API",
+    "url" : "https://api.ctfguide.com",
+    "name" : "CTFGuideAPI",
+    "version" : "1.0.0",
+    "description": "The API for ctfguide"
+  },
   "dependencies": {
     "add": "^2.0.6",
     "axios": "^0.26.0",

@@ -17,7 +17,10 @@ initializeApp({
   credential: admin.credential.cert(serviceAccount)
 })
 
-app.use("*", cors())
+// public static
+app.use(express.static('public/apidoc'));
+
+app.use("*", cors)
 app.use("/users", users);
 app.use("/challenges", challenges);
 app.use("/classes", classes);
@@ -32,7 +35,5 @@ let ChallengeModel = require('./models/challenge.js')
 
 
 http.listen(3001, () => {
-  // Run Tests
-  
   console.log("🚀 Server is running on port 3001");
 });

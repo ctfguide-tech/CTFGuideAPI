@@ -11,6 +11,16 @@ const mailgun = new Mailgun(formData);
 console.log(secret.mg)
 const client = mailgun.client({username: 'api', key: secret.mg});
 
+/**
+ * @api {get} /users/checkOTP Check OTP code
+ * @apiName checkOTP
+ * @apiGroup Users
+ * @apiQuery {String} uid
+ * @apiQuery {String} code
+ * @apiSuccess {String} Response Valid OTP
+ * @apiError {String} Response Bad OTP
+ */
+
 router.get("/checkOTP", (request, response) => {
     let uid = request.query.uid;
     let otp = request.query.otp;
@@ -28,7 +38,14 @@ router.get("/checkOTP", (request, response) => {
     });
 })
 
-// Send OTP Code
+
+/**
+ * @api {get} /users/sendOTP Send OTP code
+ * @apiName sendOTP
+ * @apiGroup Users
+ * @apiQuery {String} uid
+ * @apiSuccess {json} Message Email attempted
+ */
 router.get("/sendOTP", (request, response) => {
     let uid = request.query.uid;
     if (!uid) return response.status(400).send({
@@ -93,6 +110,15 @@ router.get("/sendOTP", (request, response) => {
    
 })
 
+/**
+ * @api {get} /users/checkusername Check username to see if its taken
+ * @apiName checkusername
+ * @apiGroup Users
+ * @apiQuery {String} username
+ * @apiSuccess {String} Response Username available.
+ * @apiError {String} Response Username already taken.
+ * @apiError {String} Response Username invalid format.
+ */
 // Check if a username is valid
 router.get("/checkusername", (request, response) => {
 
@@ -134,6 +160,16 @@ router.get("/checkusername", (request, response) => {
 })
 
 
+
+/**
+ * @api {get} /users/progress Get user progress for a lesson
+ * @apiName progress
+ * @apiGroup Users
+ * @apiQuery {String} uid User ID
+ * @apiQuery {String} lessonID Lesson ID
+ * @apiSuccess {String} Response User progress
+ * @apiError {String} Malformed Request. Are you missing the user id?
+ */
 // Update user progress on a lesson
 router.get("/progress", (request, response) => {
         console.log(`[DEBUG] Progress update from ${request.query.uid}`)
