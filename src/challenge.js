@@ -20,6 +20,7 @@ let userModel = require("../models/user.js");
 const axios = require("axios")
 const formData = require('form-data');
 const Mailgun = require('mailgun.js');
+const user = require('../models/user.js');
 const mailgun = new Mailgun(formData);
 console.log(secret.mg)
 const client = mailgun.client({username: 'api', key: secret.mg});
@@ -459,7 +460,7 @@ router.get("/leaderboards/:id", (request, response) => {
         userModel.find({}).sort([['points', -1]]).exec(function (err, model) {
             let data = model;
             var safeData = [];
-            for (var i = 0; i < 20; i++) {
+            for (var i = 0; i < data.length; i++) {
                 var myCountry = "Unknown"
                 if (data[i].username == "laphatize") {
                     console.log(data[i].country)
@@ -467,12 +468,16 @@ router.get("/leaderboards/:id", (request, response) => {
                 if (data[i].country) {
                     myCountry = data[i].country;
                 }
-                safeData.push({
-                    'points': data[i].points,
-                    'username': data[i].username,
-                    'country': myCountry,
-                    'pro': data[i].pro
-                })
+
+                if (data[i].username) {
+                    safeData.push({
+                        "pos": "#" + (i + 1),
+                        "username": data[i].username,
+                        "points": data[i].points,
+                        "country": myCountry
+                    })
+                }
+           
             }
 
             return response.status(200).json(safeData);
@@ -530,21 +535,49 @@ router.get("/check/:id", (request, response) => {
                             challengeModel.findOneAndUpdate({ id: request.params.id }, { solvedChallenges : userData[0].solvedChallenges }, (err, challengeData) => {
                                 
                                 let points = challengeData.points;
-                                userModel.findOneAndUpdate({ uid: request.query.uid }, { $inc: { points: points } }, (err, userData) => {
+                                let newDate = new Date();
+                                let streakAmount = 0;
+
+                                if (userData[0].streak) {
+                                    streakAmount = userData[0].streak;
+                                }
+                                let streakChange = false;
+                                // handle streaks
+                                if (lastSolvedDate) {
+                                    let lastSolvedDate = new Date(userData[0].lastSolvedDate);
+                                    let diff = newDate - lastSolvedDate;
+                                    let diffDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+                                    if (diffDays === 1) {
+                                        streakAmount++;
+                                        streakChange = true;
+                                    } else {
+                                        streakChange = true;
+                                        streakAmount = 1;
+                                    }
+
+                                } else {
+                                    streakChange = true;
+                                    streakAmount = 1;
+                                }
+
+                                userModel.findOneAndUpdate({ uid: request.query.uid}, { $inc: { points: points }, lastSolvedDate: newDate, streak: streakAmount }, (err, userData) => {
 
 
                                     return response.status(200).json({
                                         "message": "OK",
-                                        "award": points
+                                        "award": points,
+                                        "streakchange" : streakChange
                                     })
 
                                 });
+
+                                
                            
                             });
                              
                         } else {
                         userModel.findOneAndUpdate({ uid: request.query.uid }, { $push: { solvedChallenges: request.params.id } }, (err, userData2) => {
-                            console.log(userData2[0])
+                          //  console.log(userData2)
                             if (err) {
                                 //     console.log(err);
                                 return response.status(401).json({
@@ -552,20 +585,49 @@ router.get("/check/:id", (request, response) => {
                                 })
                             } else {
                                 // fetch points
-                                challengeModel.findOneAndUpdate({ id: request.params.id }, { $push: { leaderboards: userData[0].username } }, (err, challengeData) => {
+                                challengeModel.findOneAndUpdate({ id: request.params.id }, { $push: { leaderboards: userData2.username } }, (err, challengeData) => {
 
-                                    //console.log(challengeData)
-                                    let points = challengeData.points;
+                                      
+                                let points = challengeData.points;
+                                let newDate = new Date();
+                                let streakAmount = 0;
+
+                                if (userData2.streak) {
+                                    streakAmount = userData2.streak;
+                                }
 
 
-                                    // update points in db
-                                    userModel.findOneAndUpdate({ uid: request.query.uid }, { $inc: { points: points } }, (err, userData) => {
+                                let streakChange = false;
+                                // handle streaks
+                                if (userData2.lastSolvedDate) {
+                                    let lastSolvedDate = new Date(userData2.lastSolvedDate);
+                                    let diff = newDate - lastSolvedDate;
+                                    let diffDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+                                    console.log(diffDays)
+                                    if (diffDays === 1) {
+                                        streakAmount++;
+                                        streakChange = true;
+                                    } else {
+                                        streakChange = true;
+                                        streakAmount = 1;
+                                    }
 
+                                } else {
+                                    streakAmount = 1;
+                                    streakChange = true;
+                                }
+                                
+                                userModel.findOneAndUpdate({ uid: request.query.uid}, { $inc: { points: points }, lastSolvedDate: newDate, streak: streakAmount}, (err, userData) => {
+                                    if (err) {
+                                        console.log(err)
+                                    }
 
-                                        return response.status(200).json({
-                                            "message": "OK",
-                                            "award": points
-                                        })
+                                    return response.status(200).json({
+                                        "message": "OK",
+                                        "award": points,
+                                        "streakchange" : streakChange
+                                    })
+
 
                                     });
                                 });

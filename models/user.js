@@ -37,6 +37,9 @@ let userSchema = {
     "streak" : {
         type: Number
     },
+    "lastSolvedDate" : {
+        type: Date
+    },
     "solvedChallenges" : {
         type: Object
     },
