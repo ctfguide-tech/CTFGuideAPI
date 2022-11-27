@@ -20,7 +20,7 @@ initializeApp({
 // public static
 app.use(express.static('public/apidoc'));
 
-app.use("*", cors)
+app.use("*", cors())
 app.use("/users", users);
 app.use("/challenges", challenges);
 app.use("/classes", classes);
