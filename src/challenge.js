@@ -399,7 +399,48 @@ router.post("/update/:challengeID" , urlencodedParser,  (request, response) => {
  
 });
 
+// handling reports
+router.get("/report", urlencodedParser, (request, response) => {
 
+    if (!request.query.commentID) return response.status(400).json({
+        "message": "Please provide the challenge ID."
+    })
+
+
+    if (!request.query.uid) return response.status(400).json({
+        "message": "Please provide the user ID."
+    })
+
+    // find user
+    userModel.findOne({ uid: request
+        .query.uid }, (err, userData) => {
+            if (err) {
+                console.log(err);
+            } else {
+                
+                var username = userData.username;
+                var commentID = request.query.commentID;
+                var challengeId = request.query.challengeID;
+
+                // post to discord
+                const embed = new MessageBuilder()
+                            .setTitle('Comment Report')
+                            .setColor('#00b0f4')
+                            .setDescription(`Challenge was reported by ${username}\n\n
+                            
+                            Comment ID: ${commentID} \n
+                            Challenge ID: ${challengeId}
+                            `)
+                            .setTimestamp();
+
+                hook.send(embed);
+
+                response.status(200).send("OK");
+
+            }
+        });
+
+    });
 // Fetches a specific challenge using the id
 router.get("/specific/:id", (request, response) => {
     if (!request.params.id) return response.status(400).json({
@@ -652,6 +693,7 @@ router.get("/check/:id", (request, response) => {
                             .setTimestamp();
 
                         hook.send(embed);
+                        hook.send("@here");
 
                         return response.status(200).json({
                             "message": "BAD"
