@@ -563,7 +563,7 @@ router.get("/check/:id", (request, response) => {
                 if (result) {
                     // add challenge to solved challenges
                     
-                    if (userData.solvedChallenges) {
+                    if (userData[0].solvedChallenges) {
                     if (userData[0].solvedChallenges.includes(request.params.id)) {
                         console.log("already s")
                         return response.status(200).json({
