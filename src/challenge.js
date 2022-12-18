@@ -521,14 +521,16 @@ router.get("/check/:id", (request, response) => {
             bcrypt.compare(request.query.flag, solutionData[0].solution, (err, result) => {
                 if (result) {
                     // add challenge to solved challenges
-
+                    
+                    if (userData.solvedChallenges) {
                     if (userData[0].solvedChallenges.includes(request.params.id)) {
                         console.log("already s")
                         return response.status(200).json({
                             "message": "OK",
                             "award": 0
                         })
-                    } else {
+                    } 
+                }
 
                         if (!userData[0].solvedChallenges) {
                             userData[0].solvedChallenges = [`${request.params.id}`];
@@ -543,7 +545,7 @@ router.get("/check/:id", (request, response) => {
                                 }
                                 let streakChange = false;
                                 // handle streaks
-                                if (lastSolvedDate) {
+                                if (userData[0].lastSolvedDate) {
                                     let lastSolvedDate = new Date(userData[0].lastSolvedDate);
                                     let diff = newDate - lastSolvedDate;
                                     let diffDays = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -635,7 +637,8 @@ router.get("/check/:id", (request, response) => {
                         });
                     }
 
-                    }
+                    
+                
 
 
                 } else {
